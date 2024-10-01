@@ -1,0 +1,51 @@
+import Fastify from "fastify";
+import { fastifySwagger } from "@fastify/swagger";
+import { fastifyAutoload } from "@fastify/autoload";
+
+import { join } from "path";
+
+const fastify = Fastify({
+  logger: true,
+});
+
+fastify.register(fastifySwagger, {
+  openapi: {
+    openapi: "3.0.3",
+    info: {
+      title: "Ramen Rating",
+      description: "API fetching and storing ramen ratings",
+      version: "0.1.0",
+    },
+  },
+});
+
+fastify.register(fastifyAutoload, {
+  dir: join(__dirname, "plugins"),
+});
+
+fastify.register(fastifyAutoload, {
+  dir: join(__dirname, "routes"),
+});
+
+fastify.register(require("@scalar/fastify-api-reference"), {
+  routePrefix: "/",
+  configuration: {
+    spec: {
+      content: () => fastify.swagger(),
+    },
+  },
+});
+
+fastify.listen(
+  { host: "::", port: Number(process.env.PORT) || 4000 },
+  function (err, address) {
+    if (err) {
+      fastify.log.error(err);
+      process.exit(1);
+    }
+
+    console.log(`
+      🚀 Server listening at ${address}
+    `);
+  }
+);
